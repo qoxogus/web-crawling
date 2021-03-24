@@ -24,6 +24,7 @@ type Indeed struct {
 }
 
 //Scrapper function
+//크롤링을 실행시키는 함수이다.
 func Scrapper(query string) {
 	var jobs []Indeed
 	var baseURL string = "https://kr.indeed.com/jobs?q=" + query // + "&l=%EC%84%9C%EC%9A%B8"
@@ -44,6 +45,7 @@ func Scrapper(query string) {
 	fmt.Println("Done")
 }
 
+//결과 저장하는 func
 func writeJobs(jobs []Indeed) {
 	file, err := os.Create("jobs.csv")
 	checkErr(err)
@@ -64,6 +66,7 @@ func writeJobs(jobs []Indeed) {
 	}
 }
 
+//특정 페이지의 결과 데이터 가져오기
 func getCard(page int, baseURL string, c1 chan []Indeed) {
 	var jobs []Indeed
 	c := make(chan Indeed)
@@ -92,6 +95,7 @@ func getCard(page int, baseURL string, c1 chan []Indeed) {
 	c1 <- jobs
 }
 
+//상세 데이터 추출
 func extractJob(s *goquery.Selection, c chan<- Indeed) {
 	id, _ := s.Attr("data-jk")
 	title := CleanString(s.Find(".title>a").Text())
@@ -105,6 +109,7 @@ func extractJob(s *goquery.Selection, c chan<- Indeed) {
 		summary:  summary}
 }
 
+//crawling할 총 페이지수 확인func
 func getPages(baseURL string) int {
 	pages := 0
 	res, err := http.Get(baseURL)
@@ -123,19 +128,21 @@ func getPages(baseURL string) int {
 	return pages
 }
 
+// err확인 func
 func checkErr(err error) {
 	if err != nil {
 		log.Fatalln(err)
 	}
 }
 
+//http 요청결과 상태코드확인 func
 func checkCode(res *http.Response) {
 	if res.StatusCode != 200 {
 		log.Fatalf("Status code err: %d %s", res.StatusCode, res.Status)
 	}
 }
 
-//CleanString function
+//CleanString func
 func CleanString(str string) string {
 	return strings.Join(strings.Fields(strings.TrimSpace(str)), " ")
 }
